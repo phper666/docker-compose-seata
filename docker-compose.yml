@@ -1,0 +1,93 @@
+version: "3"
+
+services:
+  redis:
+    container_name: dcs_redis
+    build:
+      context: redis
+      args:
+        REDIS_VERSION: ${REDIS_VERSION}
+        ALPINE_REPOSITORIES: ${ALPINE_REPOSITORIES}
+        ALPINE_REPOSITORIES_REPLACE: ${ALPINE_REPOSITORIES_REPLACE}
+        TZ: ${TZ}
+    ports:
+      - "${REDIS_HOST_PORT}:6379"
+    volumes:
+      - ${CONF_PATH}/redis/conf/redis.conf:/etc/redis.conf:rw
+      - ${DATA_PATH}/redis:/data:rw
+    restart: always
+    stdin_open: true
+    tty: true
+    entrypoint: ["redis-server", "/etc/redis.conf"]
+    networks:
+      - dcs
+
+  mysql8:
+    container_name: dcs_mysql8
+    build:
+      context: mysql8
+      args:
+        MYSQL_VERSION: ${MYSQL8_VERSION}
+    ports:
+      - "${MYSQL8_HOST_PORT}:3306"
+    volumes:
+      - ${CONF_PATH}/mysql8/conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:rw
+      - ${CONF_PATH}/mysql8/init:/docker-entrypoint-initdb.d
+      - ${DATA_PATH}/mysql8:/var/lib/mysql:rw
+      - ${LOG_PATH}/mysql8:/var/log/mysql:rw
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL8_ROOT_PASSWORD}"
+      TZ: "${TZ}"
+    networks:
+      - dcs
+
+  seata-server:
+    container_name: dcs_seata_server
+    build:
+      context: seata
+      args:
+        SEATA_VERSION: "${SEATA_VERSION}"
+    ports:
+      - "${SEATA_HOST_PORT}:8091"
+    volumes:
+      - ${LOG_PATH}/seata:/root/logs/seata
+    environment:
+      SEATA_PORT: "${SEATA_HOST_PORT}"
+      STORE_MODE: "${SEATA_STORE_MODE}"
+    networks:
+      - dcs
+
+  nacos-server:
+    container_name: dcs_nacos_server
+    build:
+      context: nacos
+      args:
+        NACOS_VERSION: "${NACOS_VERSION}"
+    ports:
+      - "${NACOS_APPLICATION_PORT}:8848"
+      - "${NACOS_HOST_PORT_9848}:9848"
+      - "${NACOS_HOST_PORT_9849}:9849"
+    volumes:
+      - ${CONF_PATH}/nacos/conf/application.properties:/home/nacos/conf/application.properties
+      - ${LOG_PATH}/nacos:/home/nacos/logs
+    restart: always
+    environment:
+      PREFER_HOST_MODE: "${PREFER_HOST_MODE}"
+      MODE: "${NACOS_MODE}"
+      NACOS_APPLICATION_PORT: "${NACOS_APPLICATION_PORT}"
+      SPRING_DATASOURCE_PLATFORM: "${SPRING_DATASOURCE_PLATFORM}"
+      MYSQL_SERVICE_HOST: "${MYSQL_SERVICE_HOST}"
+      MYSQL_SERVICE_PORT: "${MYSQL_SERVICE_PORT}"
+      MYSQL_SERVICE_DB_NAME: "${MYSQL_SERVICE_DB_NAME}"
+      MYSQL_SERVICE_USER: "${MYSQL_SERVICE_USER}"
+      MYSQL_SERVICE_PASSWORD: "${MYSQL_SERVICE_PASSWORD}"
+      MYSQL_DATABASE_NUM: "${MYSQL_DATABASE_NUM}"
+      MYSQL_SERVICE_DB_PARAM: "${MYSQL_SERVICE_DB_PARAM}"
+    depends_on:
+      - mysql8
+    networks:
+      - dcs
+
+networks:
+  dcs:
