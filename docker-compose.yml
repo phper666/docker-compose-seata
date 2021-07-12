@@ -52,14 +52,25 @@ services:
       - "${SEATA_HOST_PORT}:8091"
     volumes:
       - ${LOG_PATH}/seata:/root/logs/seata
+      - ${CONF_PATH}/seata/conf:/root/seata-config
     environment:
       SEATA_PORT: "${SEATA_HOST_PORT}"
       STORE_MODE: "${SEATA_STORE_MODE}"
+      SEATA_CONFIG_NAME: "file:/root/seata-config/registry"
+      SEATA_IP: "${SEATA_IP}"
+    depends_on:
+      nacos-server:
+        condition: service_healthy
     networks:
       - dcs
 
   nacos-server:
     container_name: dcs_nacos_server
+    healthcheck:
+      test: curl localhost:8848/nacos
+      interval: 10s
+      timeout: 3s
+      retries: 3
     build:
       context: nacos
       args:
