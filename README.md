@@ -17,5 +17,5 @@ seata使用docker-compose部署，nacos+redis+mysql8+seata1.4.2(默认使用mysq
 2、seata-service真的太坑了，k8s集群内的pod注册到nacos，是pod的ip，pod之间使用ip可以连接，但是用docker-compose去部署，拿到的也是容器内的ip，所以如果你的应该是在宿主机上，不是容器内，你必须制定SEATA_IP为你的宿主机ip，否则会连接不上   
 
 
-###demo
+### demo
 最近在研究seata的各个模式demo，欢迎关注，会分享到我的github上
