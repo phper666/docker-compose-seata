@@ -14,7 +14,7 @@ seata使用docker-compose部署，nacos+redis+mysql8+seata1.4.2(默认使用mysq
 ### 注意：
 1、如果nacos启动失败，有可能是mysql初始化数据库数据还没有初始化完，可以使用下面命令重启    
 `docker-compose restart seata-server`     
-2、seata-service真的太坑了，k8s集群内的pod注册到nacos，是pod的ip，pod之间使用ip可以连接，但是用docker-compose去部署，拿到的也是容器内的ip，所以如果你的应用是在宿主机上，不是容器内，你必须制定SEATA_IP为你的宿主机ip，否则会连接不上   
+2、seata-service真的太坑了，k8s集群内的pod注册到nacos，是pod的ip，pod之间使用ip可以连接，但是用docker-compose去部署，拿到的也是容器内的ip，所以如果你的应用是在宿主机上，不是同一个网段的容器内，你必须制定SEATA_IP为你的宿主机ip，否则会连接不上   
 
 
 ### demo
